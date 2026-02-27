@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './index.css';
 
 interface Product {
@@ -25,15 +25,55 @@ const SHOP_PRODUCTS: Product[] = [
   { id: 4, name: "Varsity T-shirt", price: "₱200.00", image: "/shop-images/varsity.jpg", category: "Sportswear", stock: 80, sold: 430, rating: 4.7, reviews: 215 }
 ];
 
+const SERVICES = [
+  {
+    id: 's1',
+    title: "All-Over Printing",
+    desc: "Edge-to-edge sublimation that covers the entire garment with your stunning, high-resolution designs.",
+    fullDesc: "Our all-over printing process ensures your design flows seamlessly across the entire garment, unbounded by traditional print areas. This service is perfect for bold, highly visual street style or promotional wear that demands attention.",
+    icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+  },
+  {
+    id: 's2',
+    title: "Custom Uniforms",
+    desc: "Durable, breathable, and fade-resistant sublimated jerseys and team wear built for performance.",
+    fullDesc: "We specialize in high-performance athletic wear. Our sublimated jerseys never crack, peel, or fade, ensuring your team looks professional season after season. Customize every inch with player names, numbers, and sponsor logos.",
+    icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+  },
+  {
+    id: 's3',
+    title: "Personalized Tees",
+    desc: "One-of-a-kind t-shirts created with a process that embeds ink deeply into the fabric for a soft feel.",
+    fullDesc: "Create truly unique custom t-shirts. Because the ink becomes part of the fabric itself, the print feels incredibly soft and breathes naturally, making it much more comfortable than traditional screen printing.",
+    icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+  }
+];
+
 function App() {
-  const [activeTab, setActiveTab] = useState<'home' | 'shop'>('home');
+  const [currentHash, setCurrentHash] = useState<string>(window.location.hash || '#home');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedService, setSelectedService] = useState<typeof SERVICES[0] | null>(null);
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authModal, setAuthModal] = useState<'login' | 'register' | null>(null);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash || '#home';
+      setCurrentHash(hash);
+
+      // Auto-trigger auth modal if route is strictly login/register
+      if (hash === '#login') setAuthModal('login');
+      else if (hash === '#register') setAuthModal('register');
+      else setAuthModal(null);
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   const performAddToCart = (product: Product) => {
     setCart(prev => {
@@ -48,7 +88,7 @@ function App() {
   const handleAddToCart = (product: Product) => {
     if (!isAuthenticated) {
       setPendingAction(() => () => performAddToCart(product));
-      setAuthModal('login');
+      window.location.hash = '#login';
       return;
     }
     performAddToCart(product);
@@ -58,6 +98,8 @@ function App() {
     e.preventDefault();
     setIsAuthenticated(true);
     setAuthModal(null);
+    window.location.hash = '#shop'; // Redirect post-login by default to shop unless pendingAction
+
     if (pendingAction) {
       pendingAction();
       setPendingAction(null);
@@ -80,9 +122,9 @@ function App() {
       {/* Navigation */}
       <nav className="fixed w-full z-50 transition-all duration-300 bg-white/80 backdrop-blur-md border-b border-brand-text-2/30">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div
-            className="flex items-center gap-2 cursor-pointer"
-            onClick={() => setActiveTab('home')}
+          <a
+            href="#home"
+            className="flex items-center gap-2 cursor-pointer outline-none"
           >
             <div className="w-8 h-8 rounded-lg bg-brand-primary flex items-center justify-center">
               <svg className="w-5 h-5 text-brand-text-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -90,21 +132,21 @@ function App() {
               </svg>
             </div>
             <span className="text-xl font-bold text-brand-primary tracking-tight">Printing Paradise</span>
-          </div>
+          </a>
           <div className="hidden md:flex space-x-8">
-            <button
-              onClick={() => setActiveTab('home')}
-              className={`font-medium transition-colors ${activeTab === 'home' ? 'text-brand-sec' : 'text-brand-text-1 hover:text-brand-sec'}`}
+            <a
+              href="#home"
+              className={`font-medium transition-colors ${currentHash === '#home' || currentHash === '' ? 'text-brand-sec' : 'text-brand-text-1 hover:text-brand-sec'}`}
             >
               Home
-            </button>
-            <button
-              onClick={() => setActiveTab('shop')}
-              className={`font-medium transition-colors ${activeTab === 'shop' ? 'text-brand-sec' : 'text-brand-text-1 hover:text-brand-sec'}`}
+            </a>
+            <a
+              href="#shop"
+              className={`font-medium transition-colors ${currentHash === '#shop' ? 'text-brand-sec' : 'text-brand-text-1 hover:text-brand-sec'}`}
             >
               Shop
-            </button>
-            <a href="#services" className="text-brand-text-1 hover:text-brand-sec transition-colors font-medium">Services</a>
+            </a>
+            <a href="#services" onClick={() => { window.location.hash = '#home'; setTimeout(() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' }), 100); }} className="text-brand-text-1 hover:text-brand-sec transition-colors font-medium">Services</a>
             <a href="#about" className="text-brand-text-1 hover:text-brand-sec transition-colors font-medium">About</a>
             <a href="#contact" className="text-brand-text-1 hover:text-brand-sec transition-colors font-medium">Contact</a>
           </div>
@@ -118,18 +160,18 @@ function App() {
               </button>
             ) : (
               <div className="hidden sm:flex items-center gap-2">
-                <button
-                  onClick={() => setAuthModal('login')}
+                <a
+                  href="#login"
                   className="text-brand-text-1 hover:text-brand-sec font-medium transition-colors px-3 py-2"
                 >
                   Log In
-                </button>
-                <button
-                  onClick={() => setAuthModal('register')}
+                </a>
+                <a
+                  href="#register"
                   className="bg-brand-text-1 hover:bg-brand-primary text-white px-5 py-2.5 rounded-full font-medium transition-all text-sm"
                 >
                   Sign Up
-                </button>
+                </a>
               </div>
             )}
             <div
@@ -148,9 +190,9 @@ function App() {
             <button
               onClick={() => {
                 if (!isAuthenticated) {
-                  setAuthModal('login');
+                  window.location.hash = '#login';
                 } else {
-                  setActiveTab('shop');
+                  window.location.hash = '#shop';
                 }
               }}
               className="bg-brand-sec hover:bg-opacity-90 text-brand-text-3 px-6 py-2.5 rounded-full font-medium transition-all shadow-lg shadow-brand-sec/30 transform hover:-translate-y-0.5">
@@ -160,8 +202,8 @@ function App() {
         </div>
       </nav>
 
-      {/* Conditionally Render Content Based on Active Tab */}
-      {activeTab === 'home' && (
+      {/* Conditionally Render Content Based on Window Hash */}
+      {(currentHash === '#home' || currentHash === '' || currentHash === '#login' || currentHash === '#register') && (
         <>
           {/* Hero Section */}
           <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
@@ -185,9 +227,9 @@ function App() {
                   We deliver premium t-shirt sublimation with unmatched precision, rich colors, and prints that never fade or crack.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                  <button
+                  <a
+                    href="#home"
                     onClick={() => {
-                      setActiveTab('home');
                       setTimeout(() => {
                         document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' });
                       }, 100);
@@ -197,7 +239,7 @@ function App() {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                     </svg>
-                  </button>
+                  </a>
                   <button className="bg-white border-2 border-brand-text-2 text-brand-primary hover:border-brand-sec hover:text-brand-sec px-8 py-4 rounded-full font-semibold transition-all flex items-center justify-center">
                     Get a Custom Quote
                   </button>
@@ -241,23 +283,7 @@ function App() {
                 <p className="text-brand-text-2 max-w-2xl mx-auto text-lg">From personal projects to full team apparel, we create fade-defying prints using state-of-the-art sublimation technology.</p>
               </div>
               <div className="grid md:grid-cols-3 gap-8">
-                {[
-                  {
-                    title: "All-Over Printing",
-                    desc: "Edge-to-edge sublimation that covers the entire garment with your stunning, high-resolution designs.",
-                    icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  },
-                  {
-                    title: "Custom Uniforms",
-                    desc: "Durable, breathable, and fade-resistant sublimated jerseys and team wear built for performance.",
-                    icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  },
-                  {
-                    title: "Personalized Tees",
-                    desc: "One-of-a-kind t-shirts created with a process that embeds ink deeply into the fabric for a soft feel.",
-                    icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  }
-                ].map((service, i) => (
+                {SERVICES.map((service, i) => (
                   <div key={i} className="group bg-brand-text-3/5 border border-brand-text-2/10 p-8 rounded-2xl hover:bg-white hover:shadow-xl hover:shadow-brand-sec/20 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02]">
                     <div className="w-14 h-14 bg-brand-sec/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-brand-sec transition-all shadow-sm text-brand-sec group-hover:text-brand-text-3">
                       <svg className="w-7 h-7 text-brand-sec group-hover:text-brand-text-3 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -266,12 +292,14 @@ function App() {
                     </div>
                     <h3 className="text-2xl font-bold text-brand-text-3 mb-3">{service.title}</h3>
                     <p className="text-brand-text-2 leading-relaxed mb-6">{service.desc}</p>
-                    <a href="#" className="inline-flex items-center font-medium text-brand-sec hover:text-white transition-colors">
+                    <button
+                      onClick={() => setSelectedService(service)}
+                      className="inline-flex items-center font-medium text-brand-sec hover:text-brand-primary transition-colors outline-none cursor-pointer">
                       Learn more
                       <svg className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
-                    </a>
+                    </button>
                   </div>
                 ))}
               </div>
@@ -281,7 +309,7 @@ function App() {
       )}
 
       {/* Shop Tab Section */}
-      {activeTab === 'shop' && (
+      {currentHash === '#shop' && (
         <section id="shop" className="pt-32 pb-24 bg-brand-bg relative min-h-screen">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-16">
@@ -343,7 +371,7 @@ function App() {
       )}
 
       {/* CTA Section (Only visible on Home) */}
-      {activeTab === 'home' && (
+      {(currentHash === '#home' || currentHash === '') && (
         <section className="py-24 bg-brand-bg relative overflow-hidden">
           <div className="max-w-5xl mx-auto px-6 relative z-10">
             <div className="bg-brand-sec rounded-[3rem] p-12 md:p-20 text-center relative overflow-hidden shadow-2xl">
@@ -620,6 +648,50 @@ function App() {
                 {authModal === 'login' ? 'Register' : 'Log in'}
               </button>
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Service Modal Overlay */}
+      {selectedService && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center px-4 animate-fade-in">
+          <div
+            className="absolute inset-0 bg-brand-primary/60 backdrop-blur-sm"
+            onClick={() => setSelectedService(null)}
+          ></div>
+          <div className="relative bg-white w-full max-w-lg p-8 rounded-[2rem] shadow-2xl animate-scale-up">
+            <button
+              onClick={() => setSelectedService(null)}
+              className="absolute top-4 right-4 p-2 text-brand-text-1 hover:text-brand-primary hover:bg-brand-text-2/20 rounded-full transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="w-20 h-20 bg-brand-sec/20 rounded-3xl flex items-center justify-center mb-6 shadow-sm mx-auto text-brand-sec">
+              <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {selectedService.icon}
+              </svg>
+            </div>
+            <h2 className="text-3xl font-extrabold text-brand-primary mb-4 text-center">
+              {selectedService.title}
+            </h2>
+            <div className="bg-brand-bg rounded-2xl p-6 border border-brand-text-2/10">
+              <p className="text-brand-text-1 text-lg leading-relaxed text-center mb-6">
+                {selectedService.fullDesc}
+              </p>
+              <button
+                onClick={() => {
+                  setSelectedService(null);
+                  setTimeout(() => {
+                    document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+                  }, 100);
+                }}
+                className="w-full bg-brand-primary hover:bg-brand-sec text-white py-4 rounded-xl font-bold text-lg shadow-xl shadow-brand-primary/20 transform transition-transform hover:-translate-y-1"
+              >
+                Get a Quote
+              </button>
+            </div>
           </div>
         </div>
       )}
