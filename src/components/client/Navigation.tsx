@@ -1,5 +1,3 @@
-import { CartItem } from "../../types";
-
 interface NavigationProps {
     currentHash: string;
     isAuthenticated: boolean;
