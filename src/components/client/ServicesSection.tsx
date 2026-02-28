@@ -16,7 +16,7 @@ export default function ServicesSection({ onSelectService }: { onSelectService: 
                 </div>
                 <div className="grid md:grid-cols-3 gap-8">
                     {SERVICES.map((service, i) => (
-                        <div key={i} className="group bg-brand-text-3/5 border border-brand-text-2/10 p-8 rounded-2xl hover:bg-white hover:shadow-xl hover:shadow-brand-sec/20 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02]">
+                        <div key={i} className="group bg-brand-text-3/5 border border-brand-text-2/10 p-8 rounded-2xl hover:bg-brand-text-3/10 hover:shadow-xl hover:shadow-brand-sec/20 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02]">
                             <div className="w-14 h-14 bg-brand-sec/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-brand-sec transition-all shadow-sm text-brand-sec group-hover:text-brand-text-3">
                                 <svg className="w-7 h-7 text-brand-sec group-hover:text-brand-text-3 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     {service.icon}
@@ -26,7 +26,7 @@ export default function ServicesSection({ onSelectService }: { onSelectService: 
                             <p className="text-brand-text-2 leading-relaxed mb-6">{service.desc}</p>
                             <button
                                 onClick={() => onSelectService(service)}
-                                className="inline-flex items-center font-medium text-brand-sec hover:text-brand-primary transition-colors outline-none cursor-pointer">
+                                className="inline-flex items-center font-medium text-brand-sec hover:text-brand-text-3 transition-colors outline-none cursor-pointer">
                                 Learn more
                                 <svg className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
